@@ -1,11 +1,10 @@
 inputs:
-  env_prefix:
-    description: prefix（"dev-", "prd-", etc...）
+  bucket_name:
+    description: GCS bucket name
     required: true
-
-env:
-  BASE_BUCKET_NAME: about-me
-  BASE_LB_NAME: lb-about-me
+  lb_name:
+    description: Load balancer name
+    required: true
 
 runs:
   using: Composite
@@ -15,8 +14,8 @@ runs:
       shell: bash
       run: |
         touch ./dummy.txt
-        gsutil cp ./dummy.txt gs://${{ inputs.env_prefix }}${{ env.BASE_BUCKET_NAME }}
-        gsutil rm -a gs://${{ inputs.env_prefix }}${{ env.BASE_BUCKET_NAME }}/**
+        gsutil cp ./dummy.txt gs://${{ inputs.bucket_name }}
+        gsutil rm -a gs://${{ inputs.bucket_name }}/**
         rm -r ./dummy.txt
 
     # ビルド成果物をバケットにアップロード
@@ -24,10 +23,10 @@ runs:
       uses: google-github-actions/upload-cloud-storage@v0
       with:
         path: ./dist
-        destination: ${{ inputs.env_prefix }}${{ env.BASE_BUCKET_NAME }}
+        destination: ${{ inputs.bucket_name }}
         parent: false
 
     # キャッシュクリア
     - name: 【DEV】Invalidate cache
       shell: bash
-      run: gcloud compute url-maps invalidate-cdn-cache ${{ inputs.env_prefix }}${{ env.BASE_LB_NAME }} --path "/*" --async
+      run: gcloud compute url-maps invalidate-cdn-cache ${{ inputs.lb_name }} --path "/*" --async
