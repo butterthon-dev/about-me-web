@@ -12,6 +12,7 @@ runs:
   steps:
     # ダミーファイルをアップロードしてからバケットの中身を削除（バケットの中身が空の場合、gsutil rmでエラーが発生する）
     - name: 【DEV】Refresh bucket
+      shell: bash
       run: |
         touch ./dummy.txt
         gsutil cp ./dummy.txt gs://${{ inputs.env_prefix }}${{ env.BASE_BUCKET_NAME }}
@@ -28,4 +29,5 @@ runs:
 
     # キャッシュクリア
     - name: 【DEV】Invalidate cache
+      shell: bash
       run: gcloud compute url-maps invalidate-cdn-cache ${{ inputs.env_prefix }}${{ env.BASE_LB_NAME }} --path "/*" --async
