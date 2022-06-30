@@ -52,8 +52,22 @@ jobs:
       - name: Set up Cloud SDK
         uses: google-github-actions/setup-gcloud@v0
 
-      - name: Upload GCS
-        uses: ./.github/actions/cicd
+      # ダミーファイルをアップロードしてからバケットの中身を削除（バケットの中身が空の場合、gsutil rmでエラーが発生する）
+      - name: Refresh bucket
+        run: |
+          touch ./dummy.txt
+          gsutil cp ./dummy.txt gs://${{ (github.ref == 'develop' && 'dev-about-me') || (github.ref == 'main' && 'prd-about-me') }}
+          gsutil rm -a gs://${{ (github.ref == 'develop' && 'dev-about-me') || (github.ref == 'main' && 'prd-about-me') }}/**
+          rm -r ./dummy.txt
+
+      # ビルド成果物をバケットにアップロード
+      - name: Upload files from dist
+        uses: google-github-actions/upload-cloud-storage@v0
         with:
-          bucket_name: ${{ (github.ref == 'develop' && 'dev-about-me') || (github.ref == 'main' && 'prd-about-me') }}
-          lb_name: ${{ (github.ref == 'develop' && 'dev-lb-about-me') || (github.ref == 'main' && 'prd-lb-about-me') }}
+          path: ./dist
+          destination: ${{ (github.ref == 'develop' && 'dev-about-me') || (github.ref == 'main' && 'prd-about-me') }}
+          parent: false
+
+      # キャッシュクリア
+      - name: Invalidate cache
+        run: gcloud compute url-maps invalidate-cdn-cache ${{ (github.ref == 'develop' && 'dev-lb-about-me') || (github.ref == 'main' && 'prd-lb-about-me') }} --path "/*" --async
