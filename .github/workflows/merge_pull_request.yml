@@ -1,0 +1,56 @@
+name: Merge pull request
+
+on:
+  pull_request:
+    branches:
+      - develop
+      - main
+    types:
+      - closed
+
+env:
+  PROJECT_ID: abount-me
+  PROJECT_NUMBER: '719512294616'
+  REGION: asia-northeast1
+  WORKLOAD_IDENTITY_POOL: dev-workload-identity-pool
+  WORKLOAD_IDENTITY_POOL_PROVIDER: dev-workload-identity-prv
+
+jobs:
+  build:
+    if: github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 16.14.2
+
+      - name: Cache dependencies
+        uses: actions/cache@v2
+        with:
+          path: ~/.yarn
+          key: yarn-${{ hashFiles('yarn.lock') }}
+          restore-keys: yarn-
+
+      - name: install
+        run: yarn install
+
+      - name: build
+        run: yarn generate
+
+      - id: auth
+        uses: google-github-actions/auth@v0.4.0
+        with:
+          workload_identity_provider: projects/${{ env.PROJECT_NUMBER }}/locations/global/workloadIdentityPools/${{ env.WORKLOAD_IDENTITY_POOL }}/providers/${{ env.WORKLOAD_IDENTITY_POOL_PROVIDER }}
+          service_account: dev-sa-github-actions@${{ env.PROJECT_ID }}.iam.gserviceaccount.com
+
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v0
+
+      - name: Upload GCS
+        if: github.ref == 'develop'
+        uses: ./.github/actions/cicd
+        with:
+          env_prefix: ${{ (github.ref == 'develop' && 'dev-') || (github.ref == 'main' && 'prd-') }}
