@@ -55,4 +55,5 @@ jobs:
       - name: Upload GCS
         uses: ./.github/actions/cicd
         with:
-          env_prefix: ${{ (github.ref == 'develop' && 'dev-') || (github.ref == 'main' && 'prd-') }}
+          bucket_name: ${{ (github.ref == 'develop' && 'dev-about-me') || (github.ref == 'main' && 'prd-about-me') }}
+          lb_name: ${{ (github.ref == 'develop' && 'dev-lb-about-me') || (github.ref == 'main' && 'prd-lb-about-me') }}
