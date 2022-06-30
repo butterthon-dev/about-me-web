@@ -49,9 +49,6 @@ jobs:
           workload_identity_provider: projects/${{ env.PROJECT_NUMBER }}/locations/global/workloadIdentityPools/${{ env.WORKLOAD_IDENTITY_POOL }}/providers/${{ env.WORKLOAD_IDENTITY_POOL_PROVIDER }}
           service_account: dev-sa-github-actions@${{ env.PROJECT_ID }}.iam.gserviceaccount.com
 
-      - name: Set up Cloud SDK
-        uses: google-github-actions/setup-gcloud@v0
-
       # ダミーファイルをアップロードしてからバケットの中身を削除（バケットの中身が空の場合、gsutil rmでエラーが発生する）
       - name: Refresh bucket
         run: |
