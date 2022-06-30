@@ -1,0 +1,31 @@
+inputs:
+  env_prefix:
+    description: prefix（"dev-", "prd-", etc...）
+    required: true
+
+env:
+  BASE_BUCKET_NAME: about-me
+  BASE_LB_NAME: lb-about-me
+
+runs:
+  using: Composite
+  steps:
+    # ダミーファイルをアップロードしてからバケットの中身を削除（バケットの中身が空の場合、gsutil rmでエラーが発生する）
+    - name: 【DEV】Refresh bucket
+      run: |
+        touch ./dummy.txt
+        gsutil cp ./dummy.txt gs://${{ inputs.env_prefix }}${{ env.BASE_BUCKET_NAME }}
+        gsutil rm -a gs://${{ inputs.env_prefix }}${{ env.BASE_BUCKET_NAME }}/**
+        rm -r ./dummy.txt
+
+    # ビルド成果物をバケットにアップロード
+    - name: 【DEV】Upload files from dist
+      uses: google-github-actions/upload-cloud-storage@v0
+      with:
+        path: ./dist
+        destination: ${{ inputs.env_prefix }}${{ env.BASE_BUCKET_NAME }}
+        parent: false
+
+    # キャッシュクリア
+    - name: 【DEV】Invalidate cache
+      run: gcloud compute url-maps invalidate-cdn-cache ${{ inputs.env_prefix }}${{ env.BASE_LB_NAME }} --path "/*" --async
