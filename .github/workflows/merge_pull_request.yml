@@ -50,12 +50,12 @@ jobs:
           service_account: dev-sa-github-actions@${{ env.PROJECT_ID }}.iam.gserviceaccount.com
 
       # ダミーファイルをアップロードしてからバケットの中身を削除（バケットの中身が空の場合、gsutil rmでエラーが発生する）
-      # gsutilがWorkload Identity Federation非対応なので「gcloud alha storage」を使用（https://github.com/google-github-actions/auth/issues/49）
+      # gsutilがWorkload Identity Federation非対応なので「gcloud alpha storage」を使用（https://github.com/google-github-actions/auth/issues/49）
       - name: Refresh bucket
         run: |
           touch ./dummy.txt
-          gcloud alha storage cp ./dummy.txt gs://${{ (github.ref == 'develop' && 'dev-about-me') || (github.ref == 'main' && 'prd-about-me') }}
-          gcloud alha storage cp rm -a gs://${{ (github.ref == 'develop' && 'dev-about-me') || (github.ref == 'main' && 'prd-about-me') }}/**
+          gcloud alpha storage cp ./dummy.txt gs://${{ (github.ref == 'develop' && 'dev-about-me') || (github.ref == 'main' && 'prd-about-me') }}
+          gcloud alpha storage cp rm -a gs://${{ (github.ref == 'develop' && 'dev-about-me') || (github.ref == 'main' && 'prd-about-me') }}/**
           rm -r ./dummy.txt
 
       # ビルド成果物をバケットにアップロード
