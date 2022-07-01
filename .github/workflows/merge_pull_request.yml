@@ -55,7 +55,7 @@ jobs:
         run: |
           touch ./dummy.txt
           gcloud alpha storage cp ./dummy.txt gs://${{ (github.ref == 'develop' && 'dev-about-me') || (github.ref == 'main' && 'prd-about-me') }}
-          gcloud alpha storage cp rm -a gs://${{ (github.ref == 'develop' && 'dev-about-me') || (github.ref == 'main' && 'prd-about-me') }}/**
+          gcloud alpha storage cp rm gs://${{ (github.ref == 'develop' && 'dev-about-me') || (github.ref == 'main' && 'prd-about-me') }}/**
           rm -r ./dummy.txt
 
       # ビルド成果物をバケットにアップロード
