@@ -68,4 +68,4 @@ jobs:
 
       # キャッシュクリア
       - name: Invalidate cache
-        run: gcloud alpha compute url-maps invalidate-cdn-cache ${{ (github.ref == 'develop' && 'dev-lb-about-me') || (github.ref == 'main' && 'prd-lb-about-me') }} --path "/*" --region ${{ env.REGION }} --async
+        run: gcloud compute url-maps invalidate-cdn-cache ${{ (github.ref == 'develop' && 'dev-lb-about-me') || (github.ref == 'main' && 'prd-lb-about-me') }} --path "/*" --async
