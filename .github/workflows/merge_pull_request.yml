@@ -14,6 +14,7 @@ env:
   REGION: asia-northeast1
   WORKLOAD_IDENTITY_POOL: dev-workload-identity-pool
   WORKLOAD_IDENTITY_POOL_PROVIDER: dev-workload-identity-prv
+  GCP_SECRETS_PREFIX: dev_about_me_web-
 
 jobs:
   build:
@@ -29,6 +30,26 @@ jobs:
       - uses: actions/setup-node@v3
         with:
           node-version: 16.14.2
+
+      # SecretManager用の認証
+      - id: auth
+        uses: google-github-actions/auth@v0.4.0
+        with:
+          workload_identity_provider: projects/${{ env.PROJECT_NUMBER }}/locations/global/workloadIdentityPools/${{ env.WORKLOAD_IDENTITY_POOL }}/providers/${{ env.WORKLOAD_IDENTITY_POOL_PROVIDER }}
+          service_account: dev-sa-github-actions@${{ env.PROJECT_ID }}.iam.gserviceaccount.com
+
+      # SecretManagerからシークレット取得
+      - id: secrets
+        uses: google-github-actions/get-secretmanager-secrets@v0
+        with:
+          secrets: |-
+            VARIABLE_SAMPLE:${{ env.PROJECT_ID }}/${{ env.GCP_SECRETS_PREFIX }}VARIABLE_SAMPLE
+
+      # .env作成
+      - name: create .env
+        run: |
+          touch .env
+          echo VARIABLE_SAMPLE=${{ steps.secrets.outputs.VARIABLE_SAMPLE }} >> .env
 
       - name: Cache dependencies
         uses: actions/cache@v2
